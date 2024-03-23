@@ -2,7 +2,7 @@ import { uploadPicture } from "../middleware/uploadPictureMiddleware";
 import User from "../models/User";
 import { fileRemover } from "../utils/fileRemover";
 
- const registerUser = async (req, res, next) => {
+const registerUser = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
 
@@ -34,7 +34,7 @@ import { fileRemover } from "../utils/fileRemover";
   }
 };
 
- const loginUser = async (req, res, next) => {
+const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -62,7 +62,7 @@ import { fileRemover } from "../utils/fileRemover";
   }
 };
 
-  const userProfile = async (req, res, next) => {
+const userProfile = async (req, res, next) => {
   try {
     let user = await User.findById(req.user._id);
 
@@ -123,18 +123,21 @@ const updateProfilePicture = async (req, res, next) => {
 
     upload(req, res, async function (err) {
       if (err) {
-        const error = new Error("An unknown error occured when uploading " + err.message);
+        const error = new Error(
+          "An unknown error occured when uploading " + err.message
+        );
         next(error);
       } else {
         // every thing went well
         if (req.file) {
-          const updatedUser = await User.findByIdAndUpdate(
-            req.user._id,
-            {
-              avatar: req.file.filename,
-            },
-            { new: true }
-          );
+          let filename;
+          let updatedUser = await User.findById(req.user._id);
+          filename = updatedUser.avatar;
+          if (filename) {
+            fileRemover(filename);
+          }
+          updatedUser.avatar = req.file.filename;
+          await updatedUser.save();
           res.json({
             _id: updatedUser._id,
             avatar: updatedUser.avatar,
